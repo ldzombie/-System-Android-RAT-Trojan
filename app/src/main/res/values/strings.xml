@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">System</string>
+
+    <string name="log_starter">start myservice</string>
+    <string name="log_starter_error_starting">ошибка запуска злого сервиса !!</string>
+    <string name="log_starter_error_unreg">ошибка отмены регистрации стартера</string>
+
+</resources>
