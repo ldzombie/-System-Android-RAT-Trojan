@@ -11,6 +11,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class HttpPoster implements Runnable {
     private String file_to_upload;//файл для загрузки на сервер
     private String data;//передаваемая информация

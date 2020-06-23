@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':fileman'
 rootProject.name='System'

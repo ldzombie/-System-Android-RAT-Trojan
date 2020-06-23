@@ -96,9 +96,17 @@ public class SyncThread implements Runnable {
             path=sync_path;
             File f = new File(path);
             File file[] = f.listFiles();
-            Log.d(MyService.LOG_TAG, file.length+" файлов");
+            //Log.d(MyService.LOG_TAG, file.length+" файлов");
             for (int i=0; i < file.length; i++)
             {
+                /*if(file[i].isDirectory()){
+                    File file1[] = file[i].listFiles();
+                    for(int j=0;j<file1.length; j++){
+                        locallist.add(file1[j].getName());
+                    }
+                }else*/
+                if(file[i].isDirectory())
+                    return;
                 locallist.add(file[i].getName());
             }
         }

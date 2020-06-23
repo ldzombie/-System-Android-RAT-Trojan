@@ -30,7 +30,6 @@ public class audioManager {
         this.context = context;
     }
 
-
     public void startRecording(boolean Online){
         this.Online=Online;
         audiofile = MyService.OpenFile(TypeOpenFile.Record);

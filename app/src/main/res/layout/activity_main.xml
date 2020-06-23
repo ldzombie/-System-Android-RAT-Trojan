@@ -10,73 +10,35 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <Button
-            android:id="@+id/btnPermission"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="Permission"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:layout_editor_absoluteX="0dp" />
-
-        <Button
-            android:id="@+id/btnDA"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="DeviceAdmin"
-            app:layout_constraintTop_toBottomOf="@+id/btnPermission"
-            tools:layout_editor_absoluteX="-16dp" />
-
-        <Button
-            android:id="@+id/btnHide"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="HideAppIcon"
-            app:layout_constraintTop_toBottomOf="@+id/ET_name"
-            tools:layout_editor_absoluteX="0dp" />
-
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             android:text="UserID"
             android:textColor="#020101"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnDA" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
             android:id="@+id/ET_userid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="22dp"
             android:ems="10"
             android:inputType="textPersonName"
             app:layout_constraintStart_toEndOf="@+id/textView"
-            app:layout_constraintTop_toBottomOf="@+id/btnDA" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <EditText
-            android:id="@+id/ET_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:ems="10"
-            android:inputType="textPersonName"
-            app:layout_constraintStart_toEndOf="@+id/textView2"
-            app:layout_constraintTop_toBottomOf="@+id/ET_userid" />
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="360dp"
+            android:layout_height="43dp"
+            android:layout_marginTop="20dp"
+            android:text="Next"
+            app:layout_constraintTop_toBottomOf="@+id/ET_userid"
+            tools:layout_editor_absoluteX="12dp" />
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Name"
-            android:textColor="#000000"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

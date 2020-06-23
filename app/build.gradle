@@ -13,7 +13,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "oom.android.system"
-        minSdkVersion 22
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -26,6 +26,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
 }
 
 dependencies {
@@ -35,4 +38,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.github.sachinvarma:EasyPermission:1.0.1'
 }
