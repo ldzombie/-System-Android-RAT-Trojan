@@ -3,17 +3,14 @@ package oom.android.system.Managers.DeviceControls;
 import android.content.Context;
 import android.os.Vibrator;
 
+import oom.android.system.app.MyService;
+
 public class Vibrate {
 
-    Context context;
-
-    public Vibrate(Context context){
-        this.context = context;
-    }
 
 
-    public void vib(int i){
-        Vibrator vibrator = (Vibrator) context.getSystemService(context.VIBRATOR_SERVICE);
+    public static void vib(int i){
+        Vibrator vibrator = (Vibrator) MyService.getContext().getSystemService( MyService.getContext().VIBRATOR_SERVICE);
 
         for(int k=0;k<i;k++){
             try {

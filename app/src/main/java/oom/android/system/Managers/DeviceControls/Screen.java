@@ -9,27 +9,24 @@ import android.provider.Settings;
 import java.io.InputStream;
 import java.net.URL;
 
+import oom.android.system.app.MyService;
+
 public class Screen {
-    Context context;
 
-    public Screen(Context context){
-        this.context = context;
+    public static void setBrightnessLevel(int value){
+        Settings.System.putInt(MyService.getContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, value);
     }
 
-    public void setBrightnessLevel(int value){
-        Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, value);
-    }
-
-    public void setWallpaper(String path){
+    public static void setWallpaper(String path){
         try {
             InputStream ins = new URL(path).openStream();
-            WallpaperManager wpm = WallpaperManager.getInstance(context);
+            WallpaperManager wpm = WallpaperManager.getInstance(MyService.getContext());
             wpm.setStream(ins);
         }catch (Exception e){}
     }
 
-    public void ScreenLock(){
-        PowerManager manager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+    public static void ScreenLock(){
+        PowerManager manager = (PowerManager)MyService.getContext().getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "oom.android.system:wakelock");
         wl.acquire();
         wl.release();
