@@ -1,0 +1,94 @@
+
+.input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  border-width: 1px;
+  border-style: solid;
+  padding: 16px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+}
+
+.input[type="name"],{
+  background: #fff;
+  border-color: #bbb;
+  color: #555;
+}
+
+/* Text fields' focus effect */
+.input[type="name"]:focus {
+  border-color: #888;
+}
+
+
+.devices-list{
+  border-radius: 4px;
+  margin-top: 41px!important;
+  border-color: #fff;
+  background-color: #fff;
+}
+
+.icon{
+  margin-right: 32px;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  min-width: 24px;
+  align-self: flex-start;
+  margin: 8px 0;
+}
+
+.row{
+  display: flex;
+  margin-bottom:10px;
+  justify-content: space-between;
+  clear: both;
+}
+.box{
+  background: #fff;
+  border-radius:2px;
+  height: 160px;
+}
+.box-1{
+  width:19%;
+  text-align: center;
+  border-radius: 4px;
+  height: auto;
+}
+
+.box-header{
+  padding-bottom:8px;
+  border-bottom: solid #f3f3f3 1px;
+  margin:5px 10px 5px 10px;
+}
+
+.box-title{
+  color: black;
+  text-decoration: none;
+  font-size: 25px;
+}
+
+.box-title span{
+  margin-left: 5px;
+  font-size: 14px;
+}
+.boxes-container{
+  color: black;
+  display: inline-block;
+  justify-content: space-around;
+}
+
+.box1-left-content{
+  text-align: left;
+  margin-left: 10px;
+  width:204px;
+  height:35px;
+}
+
+.box1-right-content{
+  text-align: left;
+  width:80px;
+  height:90px;
+}

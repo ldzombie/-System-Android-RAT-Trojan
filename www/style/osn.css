@@ -1,0 +1,129 @@
+html {
+  font-family: Verdana, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+body
+{
+  margin:0px;
+  padding:0px;
+	font-family: "Open Sans", arial;
+	background:url('https://static.tumblr.com/94eb957a00fd03c0c2f7d26decd71578/u1rhacw/osAmyyh1q/tumblr_static_tumblr_static_gaussian_blur_gradient_desktop_1680x943_wallpaper-393751.jpg');
+	color:black;
+	font-weight:300;
+
+}
+
+table{
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 14px;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  background: #e9e8f8;
+  margin: 0px;
+}
+th {
+  color: #ffffff;
+  background: #2196f3;
+  border-bottom: 1px solid #37B5A5;
+  padding: 12px 17px;
+}
+td {
+  color: #000000;
+  border-bottom: 1px solid #37B5A5;
+  border-right:1px solid #37B5A5;
+  padding: 7px 17px;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+td:last-child {
+  border-right: none;
+}
+tr:hover td {
+  text-decoration: underline;
+}
+
+.parent {
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.w3-blue {
+  color: #fff !important;
+  background-color: #2196f3 !important;
+}
+.w3-container {
+  padding: .01em 16px;
+}
+.w3-header{
+  text-align: center;
+}
+
+.w3-card-4 {
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, .2), 0 4px 20px 0 rgba(0, 0, 0, .19);
+  background-color:#fff;
+}
+.container--fluid {
+  max-width: 100%;
+}
+.container {
+  width: 100%;
+  padding: 12px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.status{
+  background:white;
+  position: absolute;
+  left: 40%;
+  /* margin:10px; */
+  width:250px;
+  height:100px;
+}
+
+.v-content {
+  display: block;
+  -webkit-box-flex: 1;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  max-width: 100%;
+  -webkit-transition: .2s cubic-bezier(.4,0,.2,1);
+  transition: .2s cubic-bezier(.4,0,.2,1);
+
+}
+.fix{
+  padding: 64px 0px 36px 250px;
+}
+.v-content__wrap {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  max-width: 100%;
+  position: fixed;
+}
+
+
+
+
+@media (max-width: 1152px){
+  .container {
+    max-width: 900px;/*1045*/
+  }
+  .fix{
+    padding: 64px 10px 36px 55px;
+  }
+  
+
+}
+@media (min-width: 1152px){
+  .container {
+    max-width: 1080px;
+  }
+  .fix{
+    padding: 64px 5px 36px 250px;
+  }
+
+}

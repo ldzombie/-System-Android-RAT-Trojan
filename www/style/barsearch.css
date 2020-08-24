@@ -1,0 +1,23 @@
+
+.barsearch input {
+  float: right;
+  box-sizing: border-box;
+  display: block;
+  width: 150px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 13px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+  margin: 5px;
+  margin-right: 16px;
+}
+.barsearch input[type="text"] {
+  background: #fff;
+  border-color: #bbb;
+  color: #555;
+}
+.barsearch input[type="text"]:focus {
+  border-color: #888;
+}

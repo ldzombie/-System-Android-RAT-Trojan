@@ -1,0 +1,5 @@
+RewriteEngine On
+AddDefaultCharset utf-8
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^.]+)$ $1.php [NC,L]

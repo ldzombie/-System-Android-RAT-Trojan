@@ -1,0 +1,91 @@
+
+.changeBoard{
+  color: black;
+  background-color:white;
+  position:fixed;
+  visibility:hidden;
+  width:190px;
+  height:155px;
+  margin-left:33%;
+  margin-top:15%;
+  z-index: 1;
+}
+.changeBoard.open{
+  visibility:visible;
+}
+.changeBoard input {
+  box-sizing: border-box;
+  display: block;
+  width: 170px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 10px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+  margin: 10px;
+}
+
+.changeBoard input[type="text"] {
+  background: #fff;
+  border-color: #bbb;
+  color: #555;
+}
+
+/* Text fields' focus effect */
+.changeBoard input[type="text"]:focus {
+  border-color: #888;
+}
+.changeBoard input[type="button"] {
+  background: #28d;
+  border-color: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.changeBoard input[type="button"]:hover {
+  background: #17c;
+}
+
+/* Buttons' focus effect */
+.changeBoard input[type="button"]:focus {
+  border-color: #05a;
+}
+.changeBoard input[type="button"] {
+  box-sizing: border-box;
+  display: block;
+  border-width: 1px;
+  border-style: solid;
+  padding: 10px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+}
+.addBoard{
+  float:right;
+  position:static;
+  background-color:white;
+  width:330px;
+  height:120px;
+  
+}
+.addBoard input {
+  box-sizing: border-box;
+  display: block;
+  width: 150px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 13px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+  margin: 10px;
+}
+.addBoard input[type="text"] {
+  background: #fff;
+  border-color: #bbb;
+  color: #555;
+}
+.addBoard input[type="text"]:focus {
+  border-color: #888;
+}

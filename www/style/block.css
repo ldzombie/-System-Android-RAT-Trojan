@@ -1,0 +1,31 @@
+
+
+.addBoard{
+  float:right;
+  position:static;
+  background-color:white;
+  width:330px;
+  height:120px;
+  
+}
+.addBoard input {
+  box-sizing: border-box;
+  display: block;
+  width: 150px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 13px;
+  outline: 0;
+  font-family: inherit;
+  font-size: 0.95em;
+  margin: 10px;
+}
+.addBoard input[type="text"] {
+  background: #fff;
+  border-color: #bbb;
+  color: #555;
+}
+.addBoard input[type="text"]:focus {
+  border-color: #888;
+}
+
