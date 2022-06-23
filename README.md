@@ -20,7 +20,7 @@ ___
 Users
 ![Img 1](https://github.com/ldzombie/-System-Android-RAT-Trojan/blob/master/img/img_users.jpg?raw=true)
 ___
-В файле db.php нужно указать свою базу данных логин и пароль.
+В файле **db.php** нужно указать свою базу данных логин и пароль.
 
 ```php
 <?php
