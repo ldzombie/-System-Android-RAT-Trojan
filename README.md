@@ -6,22 +6,20 @@ Android Trojan (встроенный с Android SDK 21) исходный код
 Android-троян с возможностью дистанционного управления, выполнения корневых команд, записи и онлайн-потоковой передачи звука
 
 Это модификация трояна [android-trojan-service-](https://github.com/androidtrojan1/android-trojan-service- ) :)  
-
+___
 ### Подготовка к работе
 
 Для работы необходимо создать базу данных с названием **myratdevices** формата **utf8_general_ci**
 
 После импортировать в неё файл **SQL FILE.sql**, должна выглядеть так
 ![Img 1](https://github.com/ldzombie/-System-Android-RAT-Trojan/blob/master/img/img_1.jpg?raw=true)
-___
+
 Структура devices
 ![Img 1](https://github.com/ldzombie/-System-Android-RAT-Trojan/blob/master/img/img_devices.jpg?raw=true)  
-___
+
 Users
 ![Img 1](https://github.com/ldzombie/-System-Android-RAT-Trojan/blob/master/img/img_users.jpg?raw=true)
-
 ___
-
 В файле db.php нужно указать свою базу данных логин и пароль.
 
 ```php
