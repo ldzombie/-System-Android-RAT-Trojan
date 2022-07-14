@@ -36,7 +36,7 @@ session_start();
 
 ### Первый запуск 
 
-Когда создали базу данных и запустили хост, первым делом переходим на http://example.com/singup.php и создаем админа
+Когда создали базу данных и запустили хост, первым делом переходим на http://example.com/singup.php и создаем админа(example.com заменить на адрес своего сайта)
 
 ![Img 1](https://github.com/ldzombie/-System-Android-RAT-Trojan/blob/master/img/singup.jpg?raw=true)
 
